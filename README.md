@@ -79,7 +79,7 @@ const model = githubCopilot.chatModel('gpt-4o');
 ### Advanced Configuration
 
 ```typescript
-import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-openai-compatible';
+import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-openai-compatible';
 
 const githubCopilot = createGithubCopilotOpenAICompatible({
   baseURL: 'https://api.githubcopilot.com', // Custom base URL

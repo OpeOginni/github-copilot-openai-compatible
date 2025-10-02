@@ -1,8 +1,10 @@
 {
-  "name": "@opeoginni/github-openai-compatible",
+  "name": "@opeoginni/github-copilot-openai-compatible",
   "version": "0.1.0",
   "description": "GitHub Copilot API OpenAI-Compatible Provider for AI SDK",
   "license": "MIT",
+  "git": "https://github.com/OpeOginni/github-copilot-openai-compatible",
+  "author": "Opeyemi Oginni",
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
