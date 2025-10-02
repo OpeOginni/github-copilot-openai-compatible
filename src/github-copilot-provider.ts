@@ -68,58 +68,142 @@ export interface GithubCopilotProviderSettings {
 
 /**
  * Custom implementation of OpenAICompatibleChatLanguageModel that overrides the
- * endpoint path based on the model ID.
+ * endpoint path and request body format based on the model ID.
  */
 class GithubCopilotChatLanguageModel extends OpenAICompatibleChatLanguageModel {
-  // Override the doGenerate and doStream methods to use the correct endpoint path
+  private isCodexModel(): boolean {
+    return this.modelId === 'gpt-5-codex' || this.modelId.includes('codex');
+  }
+
+  // Override the doGenerate method to use the correct endpoint path and modify request body
   async doGenerate(
     options: Parameters<LanguageModelV2['doGenerate']>[0],
   ): Promise<Awaited<ReturnType<LanguageModelV2['doGenerate']>>> {
-    // Call the parent method but with a modified config.url
     const originalUrl = (this as any).config.url;
+    const originalFetch = (this as any).config.fetch;
     
-    // Temporarily replace the url function to use the correct path
-    (this as any).config.url = (urlOptions: any) => {
-      // If the model is gpt-5-codex or contains 'codex', use /responses endpoint
-      const path = this.modelId === 'gpt-5-codex' || this.modelId.includes('codex')
-        ? '/responses'
-        : '/chat/completions';
+    try {
+      // Replace the url function to use the correct path
+      (this as any).config.url = (urlOptions: any) => {
+        const path = this.isCodexModel() ? '/responses' : '/chat/completions';
+        return originalUrl({ ...urlOptions, path });
+      };
       
-      return originalUrl({ ...urlOptions, path });
-    };
-    
-    // Call the original method
-    const result = await super.doGenerate(options);
-    
-    // Restore the original url function
-    (this as any).config.url = originalUrl;
-    
-    return result;
+      // For codex models, intercept the fetch to modify the request body
+      if (this.isCodexModel()) {
+        (this as any).config.fetch = async (url: string, options: any) => {
+          // Parse the body and transform messages to item
+          if (options.body) {
+            const body = JSON.parse(options.body);
+            
+            if (body.messages) {
+              // Convert messages array to a single item string
+              const userMessages = body.messages.filter((msg: any) => msg.role === 'user');
+              const lastUserMessage = userMessages[userMessages.length - 1];
+              
+              // Get the content from the last user message
+              let item = '';
+              if (lastUserMessage) {
+                if (typeof lastUserMessage.content === 'string') {
+                  item = lastUserMessage.content;
+                } else if (Array.isArray(lastUserMessage.content)) {
+                  // If content is an array, concatenate text parts
+                  item = lastUserMessage.content
+                    .filter((part: any) => part.type === 'text')
+                    .map((part: any) => part.text)
+                    .join('\n');
+                }
+              }
+              
+              // Replace messages with item
+              const { messages, ...otherBodyProps } = body;
+              options.body = JSON.stringify({
+                ...otherBodyProps,
+                item,
+              });
+            }
+          }
+          
+          // Call the original fetch (or global fetch)
+          const fetchFn = originalFetch || fetch;
+          return fetchFn(url, options);
+        };
+      }
+      
+      // Call the original method
+      const result = await super.doGenerate(options);
+      
+      return result;
+    } finally {
+      // Restore the original functions
+      (this as any).config.url = originalUrl;
+      (this as any).config.fetch = originalFetch;
+    }
   }
 
   async doStream(
     options: Parameters<LanguageModelV2['doStream']>[0],
   ): Promise<Awaited<ReturnType<LanguageModelV2['doStream']>>> {
-    // Call the parent method but with a modified config.url
     const originalUrl = (this as any).config.url;
+    const originalFetch = (this as any).config.fetch;
     
-    // Temporarily replace the url function to use the correct path
-    (this as any).config.url = (urlOptions: any) => {
-      // If the model is gpt-5-codex or contains 'codex', use /responses endpoint
-      const path = this.modelId === 'gpt-5-codex' || this.modelId.includes('codex')
-        ? '/responses'
-        : '/chat/completions';
+    try {
+      // Replace the url function to use the correct path
+      (this as any).config.url = (urlOptions: any) => {
+        const path = this.isCodexModel() ? '/responses' : '/chat/completions';
+        return originalUrl({ ...urlOptions, path });
+      };
       
-      return originalUrl({ ...urlOptions, path });
-    };
-    
-    // Call the original method
-    const result = await super.doStream(options);
-    
-    // Restore the original url function
-    (this as any).config.url = originalUrl;
-    
-    return result;
+      // For codex models, intercept the fetch to modify the request body
+      if (this.isCodexModel()) {
+        (this as any).config.fetch = async (url: string, options: any) => {
+          // Parse the body and transform messages to item
+          if (options.body) {
+            const body = JSON.parse(options.body);
+            
+            if (body.messages) {
+              // Convert messages array to a single item string
+              const userMessages = body.messages.filter((msg: any) => msg.role === 'user');
+              const lastUserMessage = userMessages[userMessages.length - 1];
+              
+              // Get the content from the last user message
+              let item = '';
+              if (lastUserMessage) {
+                if (typeof lastUserMessage.content === 'string') {
+                  item = lastUserMessage.content;
+                } else if (Array.isArray(lastUserMessage.content)) {
+                  // If content is an array, concatenate text parts
+                  item = lastUserMessage.content
+                    .filter((part: any) => part.type === 'text')
+                    .map((part: any) => part.text)
+                    .join('\n');
+                }
+              }
+              
+              // Replace messages with item
+              const { messages, ...otherBodyProps } = body;
+              options.body = JSON.stringify({
+                ...otherBodyProps,
+                item,
+              });
+            }
+          }
+          
+          // Call the original fetch (or global fetch)
+          const fetchFn = originalFetch || fetch;
+          return fetchFn(url, options);
+        };
+      }
+      
+      // Call the original method
+      const result = await super.doStream(options);
+      
+      return result;
+    } finally {
+      // Restore the original functions
+      (this as any).config.url = originalUrl;
+      (this as any).config.fetch = originalFetch;
+    }
   }
 }
 

@@ -8,7 +8,8 @@ This package provides an OpenAI-compatible interface for the GitHub Copilot API,
 - Seamless integration with Vercel AI SDK
 - Easy to use API matching other AI SDK providers
 - Flexible authentication via headers (Bearer token)
-- Automatic endpoint switching based on model (uses `/responses` endpoint for Copilot codex model)
+- **Automatic endpoint switching**: Uses `/responses` endpoint for Codex models, `/chat/completions` for others
+- **Smart request formatting**: Automatically converts `messages` to `item` format for Codex models
 
 ## Installation
 
@@ -46,20 +47,30 @@ const { text } = await generateText({
 console.log(text);
 ```
 
-### Using the Default Instance
+### Using Codex Models
 
-For convenience, you can use the pre-configured default instance:
+The provider automatically handles the different API format for Codex models:
 
 ```typescript
-import { githubCopilot } from '@opeoginni/github-copilot-openai-compatible';
-import { generateText } from 'ai';
+import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-openai-compatible';
 
-// Note: You'll need to set the Authorization header yourself
+const githubCopilot = createGithubCopilotOpenAICompatible({
+  baseURL: 'https://api.githubcopilot.com',
+  name: 'githubcopilot',
+  headers: {
+    Authorization: `Bearer ${process.env.COPILOT_TOKEN}`,
+  },
+});
+
+// This will automatically use the /responses endpoint with 'item' format
+const codexModel = githubCopilot.chatModel('gpt-5-codex');
+
 const { text } = await generateText({
-  model: githubCopilot('gpt-4o'),
-  prompt: 'Create a function to calculate the Fibonacci sequence',
+  model: codexModel,
+  prompt: 'Write a Python function to sort a list',
 });
 ```
+
 
 ### Minimal Configuration
 
@@ -68,60 +79,80 @@ import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-o
 
 // Minimal setup - just provide the auth token
 const githubCopilot = createGithubCopilotOpenAICompatible({
+  baseURL: 'https://api.githubcopilot.com',
+  name: 'githubcopilot',
   headers: {
-    Authorization: `Bearer ${process.env.COPILOT_API_KEY}`,
+    Authorization: `Bearer ${process.env.COPILOT_TOKEN}`,
   },
 });
 
 const model = githubCopilot.chatModel('gpt-4o');
 ```
 
-### Advanced Configuration
-
-```typescript
-import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-openai-compatible';
-
-const githubCopilot = createGithubCopilotOpenAICompatible({
-  baseURL: 'https://api.githubcopilot.com', // Custom base URL
-  name: 'githubcopilot', // Provider name
-  headers: {
-    Authorization: `Bearer ${process.env.COPILOT_API_KEY}`,
-    "Copilot-Integration-Id": "vscode-chat",
-    "User-Agent": "GitHubCopilotChat/0.26.7",
-    "Editor-Version": "vscode/1.104.1",
-    "Editor-Plugin-Version": "copilot-chat/0.26.7",
-    // Additional custom headers
-  },
-  queryParams: {
-    // Optional query parameters
-  },
-  fetch: customFetch, // Custom fetch implementation
-});
-
-const model = githubCopilot.chatModel('gpt-4o');
-```
 
 ## Supported Models
 
-- `o1-mini` - OpenAI O1 Mini
+### Claude Models
+- `claude-opus-4` - Claude Opus 4
+- `claude-opus-41` - Claude Opus 4.1
 - `claude-3.5-sonnet` - Claude 3.5 Sonnet
-- `gpt-5-codex` - GPT-5 Codex
-- Any custom model ID (type-safe with TypeScript)
+- `claude-3.7-sonnet` - Claude 3.7 Sonnet
+- `claude-3.7-sonnet-thought` - Claude 3.7 Sonnet with Reasoning
+- `claude-sonnet-4` - Claude Sonnet 4
+- `claude-sonnet-4.5` - Claude Sonnet 4.5
+
+### GPT Models
+- `gpt-4.1` - GPT-4.1
+- `gpt-4o` - GPT-4 Optimized
+- `gpt-5` - GPT-5
+- `gpt-5-codex` - GPT-5 Codex (uses `/responses` endpoint)
+- `gpt-5-mini` - GPT-5 Mini
+
+### Gemini Models
+- `gemini-2.0-flash-001` - Gemini 2.0 Flash
+- `gemini-2.5-pro` - Gemini 2.5 Pro
+
+### Other Models
+- `grok-code-fast-1` - Grok Code Fast
+- `o3` - OpenAI O3
+- `o3-mini` - OpenAI O3 Mini
+- `o4-mini` - OpenAI O4 Mini
+
+Plus any custom model ID (type-safe with TypeScript)
+
+## How It Works
+
+### Endpoint Routing
+
+The provider automatically routes requests to the correct endpoint based on the model ID:
+
+- **Codex Models** (`gpt-5-codex` or any model containing 'codex'): 
+  - Uses `/responses` endpoint
+  - Converts `messages` array to `item` string format
+  - Extracts the last user message content
+
+- **All Other Models**:
+  - Uses standard `/chat/completions` endpoint
+  - Uses standard OpenAI-compatible `messages` array format
+
+This means you don't need to worry about the underlying API differences - the provider handles it automatically!
 
 ## API Reference
 
-### `createGithubCopilotOpenAICompatible(options?)`
+### `createGithubCopilotOpenAICompatible(options)`
 
 Creates a new GitHub Copilot provider instance.
 
 **Options:**
-- `baseURL?`: Base URL for API calls (default: `https://api.githubcopilot.com`)
-- `name?`: Provider name (default: `githubcopilot`)
-- `headers?`: Custom headers to include in requests (required for authentication)
+- `baseURL` (required): Base URL for API calls
+- `name` (required): Provider name
+- `headers?`: Custom headers to include in requests
 - `queryParams?`: Optional URL query parameters
 - `fetch?`: Custom fetch implementation
+- `includeUsage?`: Include usage information in responses
+- `supportsStructuredOutputs?`: Enable structured outputs support
 
-**Returns:** A provider instance with `chatModel()` method and callable as a function.
+**Returns:** A provider instance with `chatModel()` and `languageModel()` methods, also callable as a function.
 
 ### `githubCopilot`
 

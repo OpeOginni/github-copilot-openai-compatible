@@ -28,6 +28,21 @@ describe('github-copilot provider', () => {
     expect(model.modelId).toBe('gpt-4o');
   });
 
+  it('should create a codex model with the correct configuration', async () => {
+    const githubCopilot = createGithubCopilotOpenAICompatible({
+      baseURL: 'https://api.githubcopilot.com',
+      name: 'githubcopilot',
+      headers: {
+        Authorization: `Bearer test-token`,
+      },
+    });
+
+    const model = githubCopilot.chatModel('gpt-5-codex');
+    expect(model).toBeDefined();
+    expect(model.provider).toBe('githubcopilot.chat');
+    expect(model.modelId).toBe('gpt-5-codex');
+  });
+
   it('should work with minimal configuration', async () => {
     const githubCopilot = createGithubCopilotOpenAICompatible({
       baseURL: 'https://api.githubcopilot.com',
@@ -37,10 +52,10 @@ describe('github-copilot provider', () => {
       },
     });
 
-    const model = githubCopilot.chatModel('gpt-4o-mini');
+    const model = githubCopilot.chatModel('claude-3.5-sonnet');
     expect(model).toBeDefined();
     expect(model.provider).toBe('githubcopilot.chat');
-    expect(model.modelId).toBe('gpt-4o-mini');
+    expect(model.modelId).toBe('claude-3.5-sonnet');
   });
 
   it('should support custom provider name', async () => {
@@ -57,4 +72,34 @@ describe('github-copilot provider', () => {
     expect(model.provider).toBe('custom-copilot.chat');
   });
 
+
+  it('should support languageModel method', async () => {
+    const githubCopilot = createGithubCopilotOpenAICompatible({
+      baseURL: 'https://api.githubcopilot.com',
+      name: 'githubcopilot',
+      headers: {
+        Authorization: 'Bearer test-token',
+      },
+    });
+
+    const model = githubCopilot.languageModel('gemini-2.5-pro');
+    expect(model).toBeDefined();
+    expect(model.provider).toBe('githubcopilot.chat');
+    expect(model.modelId).toBe('gemini-2.5-pro');
+  });
+
+  it('should support calling provider directly', async () => {
+    const githubCopilot = createGithubCopilotOpenAICompatible({
+      baseURL: 'https://api.githubcopilot.com',
+      name: 'githubcopilot',
+      headers: {
+        Authorization: 'Bearer test-token',
+      },
+    });
+
+    const model = githubCopilot('o3-mini');
+    expect(model).toBeDefined();
+    expect(model.provider).toBe('githubcopilot.chat');
+    expect(model.modelId).toBe('o3-mini');
+  });
 });
