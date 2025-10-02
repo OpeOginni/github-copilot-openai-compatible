@@ -1,6 +1,6 @@
 {
   "name": "@opeoginni/github-copilot-openai-compatible",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "GitHub Copilot API OpenAI-Compatible Provider for AI SDK",
   "license": "MIT",
   "git": "https://github.com/OpeOginni/github-copilot-openai-compatible",
@@ -24,9 +24,12 @@
     "dev": "tsup --watch",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:example": "npm run build && npx tsx examples/test-usage.ts",
+    "pack:test": "npm run build && npm pack"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.42",
     "@ai-sdk/openai-compatible": "^1.0.19",
     "@ai-sdk/provider": "^2.0.0",
     "@ai-sdk/provider-utils": "^3.0.10"

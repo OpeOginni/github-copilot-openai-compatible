@@ -1,228 +1,75 @@
-import { LanguageModelV2, ProviderV2 } from '@ai-sdk/provider';
+import { LanguageModelV2 } from '@ai-sdk/provider';
+import { OpenAICompatibleChatLanguageModel } from '@ai-sdk/openai-compatible';
 import {
   FetchFunction,
   withoutTrailingSlash,
   withUserAgentSuffix,
 } from '@ai-sdk/provider-utils';
-import {
-  OpenAICompatibleChatLanguageModel,
-} from '@ai-sdk/openai-compatible';
-import { GithubCopilotChatModelId, GithubCopilotChatSettings } from './github-copilot-chat-settings';
-import { VERSION } from './version';
+import { createOpenAI } from '@ai-sdk/openai';
 
-export interface GithubCopilotProvider<
-  CHAT_MODEL_IDS extends string = string,
-> extends Omit<ProviderV2, 'textEmbeddingModel' | 'imageModel'> {
-  (modelId: CHAT_MODEL_IDS): LanguageModelV2;
+// Import the version or define it
+const VERSION = '0.1.0';
 
-  languageModel(modelId: CHAT_MODEL_IDS): LanguageModelV2;
+// Define GitHub Copilot model IDs
+export type GitHubCopilotModelId = 
+  | 'gpt-3.5-turbo'
+  | 'gpt-4'
+  | 'gpt-4-turbo'
+  | 'gpt-5-turbo'
+  | 'gpt-5-codex'
+  | (string & {});
 
-  chatModel(modelId: CHAT_MODEL_IDS): LanguageModelV2;
-}
-
-export interface GithubCopilotProviderSettings {
+export interface GitHubCopilotProviderSettings {
   /**
-   * Base URL for the API calls.
-   */
-  baseURL: string;
-
-  /**
-   * Provider name.
-   */
-  name: string;
-
-  /**
-   * API key for authenticating requests. If specified, adds an `Authorization`
-   * header to request headers with the value `Bearer <apiKey>`. This will be added
-   * before any headers potentially specified in the `headers` option.
+   * API key for authenticating requests.
    */
   apiKey?: string;
 
   /**
-   * Optional custom headers to include in requests. These will be added to request headers
-   * after any headers potentially added by use of the `apiKey` option.
+   * Base URL for the GitHub Copilot API calls.
+   */
+  baseURL?: string;
+
+  /**
+   * Name of the provider.
+   */
+  name?: string;
+
+  /**
+   * Custom headers to include in the requests.
    */
   headers?: Record<string, string>;
 
   /**
-   * Optional custom url query parameters to include in request urls.
-   */
-  queryParams?: Record<string, string>;
-
-  /**
-   * Custom fetch implementation. You can use it as a middleware to intercept requests,
-   * or to provide a custom fetch implementation for e.g. testing.
+   * Custom fetch implementation.
    */
   fetch?: FetchFunction;
-
-  /**
-   * Include usage information in streaming responses.
-   */
-  includeUsage?: boolean;
-
-  /**
-   * Whether the provider supports structured outputs in chat models.
-   */
-  supportsStructuredOutputs?: boolean;
 }
 
-/**
- * Custom implementation of OpenAICompatibleChatLanguageModel that overrides the
- * endpoint path and request body format based on the model ID.
- */
-class GithubCopilotChatLanguageModel extends OpenAICompatibleChatLanguageModel {
-  private isCodexModel(): boolean {
-    return this.modelId === 'gpt-5-codex' || this.modelId.includes('codex');
-  }
+export interface GitHubCopilotProvider {
+  /**
+   * Creates a GitHub Copilot model for text generation.
+   */
+  (modelId: GitHubCopilotModelId): LanguageModelV2;
 
-  // Override the doGenerate method to use the correct endpoint path and modify request body
-  async doGenerate(
-    options: Parameters<LanguageModelV2['doGenerate']>[0],
-  ): Promise<Awaited<ReturnType<LanguageModelV2['doGenerate']>>> {
-    const originalUrl = (this as any).config.url;
-    const originalFetch = (this as any).config.fetch;
-    
-    try {
-      // Replace the url function to use the correct path
-      (this as any).config.url = (urlOptions: any) => {
-        const path = this.isCodexModel() ? '/responses' : '/chat/completions';
-        return originalUrl({ ...urlOptions, path });
-      };
-      
-      // For codex models, intercept the fetch to modify the request body
-      if (this.isCodexModel()) {
-        (this as any).config.fetch = async (url: string, options: any) => {
-          // Parse the body and transform messages to item
-          if (options.body) {
-            const body = JSON.parse(options.body);
-            
-            if (body.messages) {
-              // Convert messages array to a single item string
-              const userMessages = body.messages.filter((msg: any) => msg.role === 'user');
-              const lastUserMessage = userMessages[userMessages.length - 1];
-              
-              // Get the content from the last user message
-              let item = '';
-              if (lastUserMessage) {
-                if (typeof lastUserMessage.content === 'string') {
-                  item = lastUserMessage.content;
-                } else if (Array.isArray(lastUserMessage.content)) {
-                  // If content is an array, concatenate text parts
-                  item = lastUserMessage.content
-                    .filter((part: any) => part.type === 'text')
-                    .map((part: any) => part.text)
-                    .join('\n');
-                }
-              }
-              
-              // Replace messages with item
-              const { messages, ...otherBodyProps } = body;
-              options.body = JSON.stringify({
-                ...otherBodyProps,
-                item,
-              });
-            }
-          }
-          
-          // Call the original fetch (or global fetch)
-          const fetchFn = originalFetch || fetch;
-          return fetchFn(url, options);
-        };
-      }
-      
-      // Call the original method
-      const result = await super.doGenerate(options);
-      
-      return result;
-    } finally {
-      // Restore the original functions
-      (this as any).config.url = originalUrl;
-      (this as any).config.fetch = originalFetch;
-    }
-  }
-
-  async doStream(
-    options: Parameters<LanguageModelV2['doStream']>[0],
-  ): Promise<Awaited<ReturnType<LanguageModelV2['doStream']>>> {
-    const originalUrl = (this as any).config.url;
-    const originalFetch = (this as any).config.fetch;
-    
-    try {
-      // Replace the url function to use the correct path
-      (this as any).config.url = (urlOptions: any) => {
-        const path = this.isCodexModel() ? '/responses' : '/chat/completions';
-        return originalUrl({ ...urlOptions, path });
-      };
-      
-      // For codex models, intercept the fetch to modify the request body
-      if (this.isCodexModel()) {
-        (this as any).config.fetch = async (url: string, options: any) => {
-          // Parse the body and transform messages to item
-          if (options.body) {
-            const body = JSON.parse(options.body);
-            
-            if (body.messages) {
-              // Convert messages array to a single item string
-              const userMessages = body.messages.filter((msg: any) => msg.role === 'user');
-              const lastUserMessage = userMessages[userMessages.length - 1];
-              
-              // Get the content from the last user message
-              let item = '';
-              if (lastUserMessage) {
-                if (typeof lastUserMessage.content === 'string') {
-                  item = lastUserMessage.content;
-                } else if (Array.isArray(lastUserMessage.content)) {
-                  // If content is an array, concatenate text parts
-                  item = lastUserMessage.content
-                    .filter((part: any) => part.type === 'text')
-                    .map((part: any) => part.text)
-                    .join('\n');
-                }
-              }
-              
-              // Replace messages with item
-              const { messages, ...otherBodyProps } = body;
-              options.body = JSON.stringify({
-                ...otherBodyProps,
-                item,
-              });
-            }
-          }
-          
-          // Call the original fetch (or global fetch)
-          const fetchFn = originalFetch || fetch;
-          return fetchFn(url, options);
-        };
-      }
-      
-      // Call the original method
-      const result = await super.doStream(options);
-      
-      return result;
-    } finally {
-      // Restore the original functions
-      (this as any).config.url = originalUrl;
-      (this as any).config.fetch = originalFetch;
-    }
-  }
+  /**
+   * Creates a GitHub Copilot model for text generation.
+   */
+  chatModel(modelId: GitHubCopilotModelId): LanguageModelV2;
 }
 
 /**
  * Create a GitHub Copilot provider instance.
  */
-export function createGithubCopilotOpenAICompatible<
-  CHAT_MODEL_IDS extends string,
->(
-  options: GithubCopilotProviderSettings,
-): GithubCopilotProvider<CHAT_MODEL_IDS> {
-  const baseURL = withoutTrailingSlash(options.baseURL);
-  const providerName = options.name;
+export function createGitHubCopilotOpenAICompatible(
+  options: GitHubCopilotProviderSettings = {}
+): GitHubCopilotProvider {
+  const baseURL = withoutTrailingSlash(
+    options.baseURL ?? 'https://api.githubcopilot.com'
+  );
 
-  interface CommonModelConfig {
-    provider: string;
-    url: ({ path }: { path: string }) => string;
-    headers: () => Record<string, string>;
-    fetch?: FetchFunction;
+  if (!baseURL) {
+    throw new Error('baseURL is required');
   }
 
   const headers = {
@@ -231,47 +78,48 @@ export function createGithubCopilotOpenAICompatible<
   };
 
   const getHeaders = () =>
-    withUserAgentSuffix(headers, `ai-sdk/github-copilot-openai-compatible/${VERSION}`);
+    withUserAgentSuffix(headers, `opeoginni/github-copilot-openai-compatible/${VERSION}`);
 
-  const getCommonModelConfig = (modelType: string): CommonModelConfig => ({
-    provider: `${providerName}.${modelType}`,
-    url: ({ path }) => {
-      const url = new URL(`${baseURL}${path}`);
-      if (options.queryParams) {
-        url.search = new URLSearchParams(options.queryParams).toString();
-      }
-      return url.toString();
-    },
-    headers: getHeaders,
+  // Extract token from Authorization header and remove it from headers
+  const allHeaders = getHeaders();
+  const authHeader = allHeaders.authorization;
+  const extractedToken = authHeader?.startsWith('Bearer ') 
+    ? authHeader.substring(7) // Remove 'Bearer ' prefix
+    : options.apiKey || 'dummy-key';
+  
+  const { authorization, ...headersWithoutAuth } = allHeaders;
+
+  // Create an OpenAI provider instance for responses API
+  const openAIProvider = createOpenAI({
+    baseURL,
+    headers: headersWithoutAuth,
     fetch: options.fetch,
-  });
+    name: options.name ?? 'githubcopilot',
+    apiKey: extractedToken,
+  })
 
-  const createLanguageModel = (modelId: CHAT_MODEL_IDS) =>
-    createChatModel(modelId);
+  const createChatModel = (modelId: GitHubCopilotModelId) => {
+    // If model is gpt-5-codex, use the responses API
+    if (modelId.includes('gpt-5-codex')) {
+      return openAIProvider.responses(modelId);
+    }
 
-  const createChatModel = (modelId: CHAT_MODEL_IDS) =>
-    new GithubCopilotChatLanguageModel(modelId, {
-      ...getCommonModelConfig('chat'),
-      includeUsage: options.includeUsage,
-      supportsStructuredOutputs: options.supportsStructuredOutputs,
+    return new OpenAICompatibleChatLanguageModel(modelId, {
+      provider: `${options.name ?? 'githubcopilot'}.chat`,
+      headers: getHeaders,
+      url: ({ path }) => `${baseURL}${path}`,
+      fetch: options.fetch,
     });
+  };
 
-  const provider = (modelId: CHAT_MODEL_IDS) => createLanguageModel(modelId);
+  const provider = function (modelId: GitHubCopilotModelId) {
+    return createChatModel(modelId);
+  };
 
-  provider.languageModel = createLanguageModel;
   provider.chatModel = createChatModel;
 
-  return provider as GithubCopilotProvider<CHAT_MODEL_IDS>;
+  return provider as GitHubCopilotProvider;
 }
 
-// Export default instance with common GitHub Copilot headers
-export const githubCopilot = createGithubCopilotOpenAICompatible({
-  baseURL: 'https://api.githubcopilot.com',
-  name: 'githubcopilot',
-  headers: {
-    "Copilot-Integration-Id": "vscode-chat",
-    "User-Agent": "GitHubCopilotChat/0.26.7",
-    "Editor-Version": "vscode/1.104.1",
-    "Editor-Plugin-Version": "copilot-chat/0.26.7",
-  },
-});
+// Default GitHub Copilot provider instance
+export const githubCopilot = createGitHubCopilotOpenAICompatible();

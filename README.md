@@ -9,7 +9,7 @@ This package provides an OpenAI-compatible interface for the GitHub Copilot API,
 - Easy to use API matching other AI SDK providers
 - Flexible authentication via headers (Bearer token)
 - **Automatic endpoint switching**: Uses `/responses` endpoint for Codex models, `/chat/completions` for others
-- **Smart request formatting**: Automatically converts `messages` to `item` format for Codex models
+- **Smart request formatting**: Automatically converts `messages` array to OpenAI Responses API `input` format for Codex models
 
 ## Installation
 
@@ -128,8 +128,9 @@ The provider automatically routes requests to the correct endpoint based on the 
 
 - **Codex Models** (`gpt-5-codex` or any model containing 'codex'): 
   - Uses `/responses` endpoint
-  - Converts `messages` array to `item` string format
-  - Extracts the last user message content
+  - Converts `messages` array to OpenAI Responses API `input` format
+  - Transforms message content parts (e.g., `text` → `input_text`, `image_url` → `input_image`)
+  - System messages become `developer` role messages
 
 - **All Other Models**:
   - Uses standard `/chat/completions` endpoint

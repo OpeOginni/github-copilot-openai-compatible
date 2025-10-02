@@ -1,7 +1,7 @@
-export { createGithubCopilotOpenAICompatible, githubCopilot } from './github-copilot-provider';
+export { createGitHubCopilotOpenAICompatible, githubCopilot } from './github-copilot-provider';
 export type {
-  GithubCopilotProvider,
-  GithubCopilotProviderSettings,
+  GitHubCopilotProvider,
+  GitHubCopilotProviderSettings,
 } from './github-copilot-provider';
 export type { GithubCopilotChatModelId, GithubCopilotChatSettings } from './github-copilot-chat-settings';
 export { VERSION } from './version';
