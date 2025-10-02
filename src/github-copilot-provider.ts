@@ -48,6 +48,11 @@ export interface GitHubCopilotProvider {
    * Creates a GitHub Copilot model for text generation.
    */
   chatModel(modelId: GitHubCopilotModelId): LanguageModelV2;
+
+  /**
+   * Creates a GitHub Copilot model for text generation.
+   */
+  languageModel(modelId: GitHubCopilotModelId): LanguageModelV2;
 }
 
 /**
@@ -64,7 +69,13 @@ export function createGitHubCopilotOpenAICompatible(
     throw new Error('baseURL is required');
   }
 
+  // Merge headers: defaults first, then user overrides
   const headers = {
+    // Default GitHub Copilot headers (can be overridden by user)
+    "Copilot-Integration-Id": "vscode-chat",
+    "User-Agent": "GitHubCopilotChat/0.26.7",
+    "Editor-Version": "vscode/1.104.1",
+    "Editor-Plugin-Version": "copilot-chat/0.26.7",
     ...(options.apiKey && { Authorization: `Bearer ${options.apiKey}` }),
     ...options.headers,
   };
