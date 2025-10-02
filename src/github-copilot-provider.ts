@@ -6,18 +6,10 @@ import {
   withUserAgentSuffix,
 } from '@ai-sdk/provider-utils';
 import { createOpenAI } from '@ai-sdk/openai';
+import { GitHubCopilotModelId } from './github-copilot-chat-settings';
 
 // Import the version or define it
 const VERSION = '0.1.0';
-
-// Define GitHub Copilot model IDs
-export type GitHubCopilotModelId = 
-  | 'gpt-3.5-turbo'
-  | 'gpt-4'
-  | 'gpt-4-turbo'
-  | 'gpt-5-turbo'
-  | 'gpt-5-codex'
-  | (string & {});
 
 export interface GitHubCopilotProviderSettings {
   /**
@@ -112,10 +104,15 @@ export function createGitHubCopilotOpenAICompatible(
     });
   };
 
+  const createLanguageModel = (modelId: GitHubCopilotModelId) =>
+    createChatModel(modelId);
+
+
   const provider = function (modelId: GitHubCopilotModelId) {
     return createChatModel(modelId);
   };
 
+  provider.languageModel = createLanguageModel;
   provider.chatModel = createChatModel;
 
   return provider as GitHubCopilotProvider;

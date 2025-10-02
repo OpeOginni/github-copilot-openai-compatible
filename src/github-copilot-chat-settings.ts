@@ -1,4 +1,4 @@
-export type GithubCopilotChatModelId =
+export type GitHubCopilotModelId =
   | 'claude-opus-4'
   | 'claude-opus-41'
   | 'claude-3.5-sonnet'
@@ -19,7 +19,7 @@ export type GithubCopilotChatModelId =
   | 'o4-mini'
   | (string & {});
 
-export interface GithubCopilotChatSettings {
+export interface GitHubCopilotChatSettings {
   /**
    * Optional settings specific to GitHub Copilot models
    */
