@@ -1,6 +1,6 @@
 {
   "name": "@opeoginni/github-copilot-openai-compatible",
-  "version": "0.1.8",
+  "version": "0.1.15",
   "description": "GitHub Copilot API OpenAI-Compatible Provider for AI SDK",
   "license": "MIT",
   "git": "https://github.com/OpeOginni/github-copilot-openai-compatible",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^2.0.42",
     "@ai-sdk/openai-compatible": "^1.0.19",
-    "@ai-sdk/provider": "^2.0.0",
+    "@ai-sdk/provider": "^2.1.0-beta.4",
     "@ai-sdk/provider-utils": "^3.0.10"
   },
   "devDependencies": {
