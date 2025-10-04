@@ -30,8 +30,8 @@ const githubCopilot = createGithubCopilotOpenAICompatible({
   baseURL: 'https://api.githubcopilot.com',
   name: 'githubcopilot',
   headers: {
-    Authorization: `Bearer ${process.env.COPILOT_API_KEY}`,
-    "Copilot-Integration-Id": "vscode-chat",
+    Authorization: `Bearer ${process.env.COPILOT_TOKEN}`,
+    "Copilot-Integration-Id": "vscode-chat", // Configs like these are not and are already provided
     "User-Agent": "GitHubCopilotChat/0.26.7",
     "Editor-Version": "vscode/1.104.1",
     "Editor-Plugin-Version": "copilot-chat/0.26.7"
@@ -118,7 +118,7 @@ const model = githubCopilot.chatModel('gpt-4o');
 - `o3-mini` - OpenAI O3 Mini
 - `o4-mini` - OpenAI O4 Mini
 
-Plus any custom model ID (type-safe with TypeScript)
+Plus any custom model ID supported by Github Copilot (type-safe with TypeScript)
 
 ## How It Works
 
