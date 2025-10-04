@@ -82,25 +82,7 @@ export function createGitHubCopilotOpenAICompatible(
   };
 
   const getHeaders = () =>
-    withUserAgentSuffix(headers, `opeoginni/github-copilot-openai-compatible/${VERSION}`);
-
-  // Extract token from Authorization header and remove it from headers
-  const allHeaders = getHeaders();
-  const authHeader = allHeaders.authorization;
-  const extractedToken = authHeader?.startsWith('Bearer ') 
-    ? authHeader.substring(7) // Remove 'Bearer ' prefix
-    : options.apiKey || 'dummy-key';
-  
-  const { authorization, ...headersWithoutAuth } = allHeaders;
-
-  // Create an OpenAI provider instance for responses API
-  const openAIProvider = createOpenAI({
-    baseURL,
-    headers: headersWithoutAuth,
-    fetch: options.fetch,
-    name: options.name ?? 'githubcopilot',
-    apiKey: extractedToken,
-  })
+    withUserAgentSuffix(headers, `opeoginni/github-copilot-openai-compatible/${VERSION}`);  
 
   const createChatModel = (modelId: GitHubCopilotModelId) => {
     // If model is gpt-5-codex, use the responses API
