@@ -1,11 +1,10 @@
-import { LanguageModelV2, LanguageModelV3 } from '@ai-sdk/provider';
+import { LanguageModelV2 } from '@ai-sdk/provider';
 import { OpenAICompatibleChatLanguageModel } from '@ai-sdk/openai-compatible';
 import {
   FetchFunction,
   withoutTrailingSlash,
   withUserAgentSuffix,
 } from '@ai-sdk/provider-utils';
-import { createOpenAI } from '@ai-sdk/openai';
 import { GitHubCopilotModelId } from './github-copilot-chat-settings';
 import { OpenAIResponsesLanguageModel } from './responses/openai-responses-language-model';
 
@@ -73,10 +72,6 @@ export function createGitHubCopilotOpenAICompatible(
   // Merge headers: defaults first, then user overrides
   const headers = {
     // Default GitHub Copilot headers (can be overridden by user)
-    "Copilot-Integration-Id": "vscode-chat",
-    "User-Agent": "GitHubCopilotChat/0.26.7",
-    "Editor-Version": "vscode/1.104.1",
-    "Editor-Plugin-Version": "copilot-chat/0.26.7",
     ...(options.apiKey && { Authorization: `Bearer ${options.apiKey}` }),
     ...options.headers,
   };

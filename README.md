@@ -31,7 +31,7 @@ const githubCopilot = createGithubCopilotOpenAICompatible({
   name: 'githubcopilot',
   headers: {
     Authorization: `Bearer ${process.env.COPILOT_TOKEN}`,
-    "Copilot-Integration-Id": "vscode-chat", // Configs like these are not and are already provided
+    "Copilot-Integration-Id": "vscode-chat", // These configs must be provided
     "User-Agent": "GitHubCopilotChat/0.26.7",
     "Editor-Version": "vscode/1.104.1",
     "Editor-Plugin-Version": "copilot-chat/0.26.7"
@@ -58,8 +58,12 @@ const githubCopilot = createGithubCopilotOpenAICompatible({
   baseURL: 'https://api.githubcopilot.com',
   name: 'githubcopilot',
   headers: {
-    Authorization: `Bearer ${process.env.COPILOT_TOKEN}`,
+    "Copilot-Integration-Id": "vscode-chat", // These configs must be provided
+    "User-Agent": "GitHubCopilotChat/0.26.7",
+    "Editor-Version": "vscode/1.104.1",
+    "Editor-Plugin-Version": "copilot-chat/0.26.7"
   },
+  apiKey: process.env.COPILOT_TOKEN
 });
 
 // This will automatically use the /responses endpoint with 'item' format
@@ -77,13 +81,17 @@ const { text } = await generateText({
 ```typescript
 import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-openai-compatible';
 
-// Minimal setup - just provide the auth token
+// Minimal setup - just provide the auth token and required headers
 const githubCopilot = createGithubCopilotOpenAICompatible({
   baseURL: 'https://api.githubcopilot.com',
   name: 'githubcopilot',
   headers: {
-    Authorization: `Bearer ${process.env.COPILOT_TOKEN}`,
+    "Copilot-Integration-Id": "vscode-chat", // These configs must be provided
+    "User-Agent": "GitHubCopilotChat/0.26.7",
+    "Editor-Version": "vscode/1.104.1",
+    "Editor-Plugin-Version": "copilot-chat/0.26.7"
   },
+  apiKey: process.env.COPILOT_TOKEN
 });
 
 const model = githubCopilot.chatModel('gpt-4o');
