@@ -1,6 +1,6 @@
 {
   "name": "@opeoginni/github-copilot-openai-compatible",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "GitHub Copilot API OpenAI-Compatible Provider for AI SDK",
   "license": "MIT",
   "git": "https://github.com/OpeOginni/github-copilot-openai-compatible",
