@@ -1124,11 +1124,13 @@ import {
                     },
                   });
                 } else if (value.item.type === 'message') {
-                  controller.enqueue({
-                    type: 'text-end',
-                    id: value.item.id,
-                  });
-                  currentTextId = null;
+                  if (currentTextId) {
+                    controller.enqueue({
+                      type: 'text-end',
+                      id: currentTextId,
+                    });
+                    currentTextId = null;
+                  }
                 } else if (isResponseOutputItemDoneReasoningChunk(value)) {
                   const activeReasoningPart = activeReasoning[value.item.id];
                   if (activeReasoningPart) {
