@@ -113,8 +113,10 @@ const model = githubCopilot.chatModel('gpt-4o');
 - `gpt-4.1` - GPT-4.1
 - `gpt-4o` - GPT-4 Optimized
 - `gpt-5` - GPT-5
-- `gpt-5-codex` - GPT-5 Codex (uses `/responses` endpoint)
 - `gpt-5-mini` - GPT-5 Mini
+- `gpt-5-codex` - GPT-5 Codex (uses `/responses` endpoint)
+- `gpt-5.1-codex` - GPT-5.1 Codex (uses `/responses` endpoint)
+- `gpt-5.1-codex-mini` - GPT-5.1 Codex Mini (uses `/responses` endpoint)
 
 ### Gemini Models
 - `gemini-2.0-flash-001` - Gemini 2.0 Flash
