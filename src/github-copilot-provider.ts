@@ -81,7 +81,7 @@ export function createGitHubCopilotOpenAICompatible(
 
   const createChatModel = (modelId: GitHubCopilotModelId) => {
     // If model is gpt-5-codex, use the responses API
-    if (modelId.includes('gpt-5-codex')) {
+    if (modelId.includes('gpt-5-codex') || modelId.includes('gpt-5.1-codex') || modelId.includes('gpt-5.1-codex-mini')) {
       return new OpenAIResponsesLanguageModel(modelId, {
         provider: `${options.name ?? 'githubcopilot'}.responses`,
         headers: getHeaders,

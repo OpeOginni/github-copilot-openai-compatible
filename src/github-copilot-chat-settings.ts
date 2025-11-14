@@ -17,6 +17,8 @@ export type GitHubCopilotModelId =
   | 'o3'
   | 'o3-mini'
   | 'o4-mini'
+  | 'gpt-5.1-codex'
+  | 'gpt-5.1-codex-mini'
   | (string & {});
 
 export interface GitHubCopilotChatSettings {
