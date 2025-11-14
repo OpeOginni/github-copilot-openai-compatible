@@ -1,0 +1,15 @@
+# Source code
+src/
+
+# Dependencies
+node_modules/
+
+# Build configuration
+tsconfig.json
+tsup.config.ts
+
+# Lock file
+package-lock.json
+
+# Development files
+.npmignore
