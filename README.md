@@ -1,134 +1,95 @@
 # GitHub Copilot OpenAI-Compatible Provider for AI SDK
 
-This package provides an OpenAI-compatible interface for the GitHub Copilot API, designed to work seamlessly with the Vercel AI SDK.
+This package provides an OpenAI-compatible interface for GitHub Copilot API, designed to work seamlessly with Vercel AI SDK v6.
 
 ## Features
 
 - Full TypeScript support
-- Seamless integration with Vercel AI SDK
+- Seamless integration with Vercel AI SDK v6
 - Easy to use API matching other AI SDK providers
-- Flexible authentication via headers (Bearer token)
 - **Automatic endpoint switching**: Uses `/responses` endpoint for Codex models, `/chat/completions` for others
 - **Smart request formatting**: Automatically converts `messages` array to OpenAI Responses API `input` format for Codex models
 
 ## Installation
 
+### AI SDK v6 (Current)
 ```bash
 npm install @opeoginni/github-copilot-openai-compatible
 ```
 
+### AI SDK v5
+If you need AI SDK v5 support, use the `ai-v5` tag:
+```bash
+npm install @opeoginni/github-copilot-openai-compatible@ai-v5
+```
+
+## Authentication
+
+### Getting Your Token
+
+To get your GitHub Copilot API token, check out [`opencode-copilot-auth`](https://github.com/sst/opencode-copilot-auth/tree/main).
+
+### Required Headers
+
+GitHub Copilot requires specific headers for authentication. While the provider handles your API key, you may need to configure additional headers:
+
+```typescript
+const githubCopilot = createGithubCopilotOpenAICompatible({
+  apiKey: process.env.COPILOT_TOKEN,
+  headers: {
+    "Copilot-Integration-Id": "vscode-chat",
+    "User-Agent": "GitHubCopilotChat/0.26.7",
+    "Editor-Version": "vscode/1.104.1",
+    "Editor-Plugin-Version": "copilot-chat/0.26.7"
+  },
+});
+```
+
+These headers identify your application to GitHub Copilot. You may need to update version numbers based on your integration.
+
 ## Usage
 
-### Basic Usage
+### Quick Start
 
 ```typescript
 import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-openai-compatible';
 import { generateText } from 'ai';
 
-// Create the provider instance
 const githubCopilot = createGithubCopilotOpenAICompatible({
-  baseURL: 'https://api.githubcopilot.com',
-  name: 'githubcopilot',
+  apiKey: process.env.COPILOT_TOKEN,
   headers: {
-    Authorization: `Bearer ${process.env.COPILOT_TOKEN}`,
-    "Copilot-Integration-Id": "vscode-chat", // These configs must be provided
+    "Copilot-Integration-Id": "vscode-chat",
     "User-Agent": "GitHubCopilotChat/0.26.7",
     "Editor-Version": "vscode/1.104.1",
     "Editor-Plugin-Version": "copilot-chat/0.26.7"
   },
 });
 
-// Use the chat model
+// Use Codex model (recommended)
 const { text } = await generateText({
-  model: githubCopilot.chatModel('gpt-4o'),
-  prompt: 'Create a function to calculate the Fibonacci sequence',
+  model: githubCopilot('gpt-5.1-codex'),
+  prompt: 'Write a Python function to sort a list',
 });
 
 console.log(text);
 ```
 
-### Using Codex Models
-
-The provider automatically handles the different API format for Codex models:
-
-```typescript
-import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-openai-compatible';
-
-const githubCopilot = createGithubCopilotOpenAICompatible({
-  baseURL: 'https://api.githubcopilot.com',
-  name: 'githubcopilot',
-  headers: {
-    "Copilot-Integration-Id": "vscode-chat", // These configs must be provided
-    "User-Agent": "GitHubCopilotChat/0.26.7",
-    "Editor-Version": "vscode/1.104.1",
-    "Editor-Plugin-Version": "copilot-chat/0.26.7"
-  },
-  apiKey: process.env.COPILOT_TOKEN
-});
-
-// This will automatically use the /responses endpoint with 'item' format
-const codexModel = githubCopilot.chatModel('gpt-5-codex');
-
-const { text } = await generateText({
-  model: codexModel,
-  prompt: 'Write a Python function to sort a list',
-});
-```
-
-
-### Minimal Configuration
-
-```typescript
-import { createGithubCopilotOpenAICompatible } from '@opeoginni/github-copilot-openai-compatible';
-
-// Minimal setup - just provide the auth token and required headers
-const githubCopilot = createGithubCopilotOpenAICompatible({
-  baseURL: 'https://api.githubcopilot.com',
-  name: 'githubcopilot',
-  headers: {
-    "Copilot-Integration-Id": "vscode-chat", // These configs must be provided
-    "User-Agent": "GitHubCopilotChat/0.26.7",
-    "Editor-Version": "vscode/1.104.1",
-    "Editor-Plugin-Version": "copilot-chat/0.26.7"
-  },
-  apiKey: process.env.COPILOT_TOKEN
-});
-
-const model = githubCopilot.chatModel('gpt-4o');
-```
-
-
 ## Supported Models
 
-### Claude Models
-- `claude-opus-4` - Claude Opus 4
-- `claude-opus-41` - Claude Opus 4.1
-- `claude-3.5-sonnet` - Claude 3.5 Sonnet
-- `claude-3.7-sonnet` - Claude 3.7 Sonnet
-- `claude-3.7-sonnet-thought` - Claude 3.7 Sonnet with Reasoning
-- `claude-sonnet-4` - Claude Sonnet 4
-- `claude-sonnet-4.5` - Claude Sonnet 4.5
+### Codex Models (Uses `/responses` endpoint)
 
-### GPT Models
-- `gpt-4.1` - GPT-4.1
-- `gpt-4o` - GPT-4 Optimized
-- `gpt-5` - GPT-5
-- `gpt-5-mini` - GPT-5 Mini
-- `gpt-5-codex` - GPT-5 Codex (uses `/responses` endpoint)
-- `gpt-5.1-codex` - GPT-5.1 Codex (uses `/responses` endpoint)
-- `gpt-5.1-codex-mini` - GPT-5.1 Codex Mini (uses `/responses` endpoint)
+This package fully supports OpenAI's Codex models, which use the advanced OpenAI Responses API:
 
-### Gemini Models
-- `gemini-2.0-flash-001` - Gemini 2.0 Flash
-- `gemini-2.5-pro` - Gemini 2.5 Pro
+- `gpt-5-codex` - GPT-5 Codex
+- `gpt-5.1-codex` - GPT-5.1 Codex  
+- `gpt-5.1-codex-mini` - GPT-5.1 Codex Mini
+- `gpt-5.1-codex-max` - GPT-5.1 Codex Max
 
 ### Other Models
-- `grok-code-fast-1` - Grok Code Fast
-- `o3` - OpenAI O3
-- `o3-mini` - OpenAI O3 Mini
-- `o4-mini` - OpenAI O4 Mini
 
-Plus any custom model ID supported by Github Copilot (type-safe with TypeScript)
+For non-Codex models (standard chat completions), check your GitHub Copilot settings to see which models are available to you. You can use any model ID that Copilot supports - they'll automatically route to the `/chat/completions` endpoint.
+
+> **Note:** GitHub Copilot may provide access to various models (Claude, GPT, Gemini, etc.) based on your subscription. Check your Copilot settings for the full list of available models.
 
 ## How It Works
 
@@ -155,23 +116,38 @@ This means you don't need to worry about the underlying API differences - the pr
 Creates a new GitHub Copilot provider instance.
 
 **Options:**
-- `baseURL` (required): Base URL for API calls
-- `name` (required): Provider name
+- `apiKey?`: Your GitHub Copilot API token
+- `baseURL?`: Base URL for API calls (default: `https://api.githubcopilot.com`)
+- `name?`: Provider name (default: `githubcopilot`)
 - `headers?`: Custom headers to include in requests
-- `queryParams?`: Optional URL query parameters
 - `fetch?`: Custom fetch implementation
-- `includeUsage?`: Include usage information in responses
-- `supportsStructuredOutputs?`: Enable structured outputs support
 
-**Returns:** A provider instance with `chatModel()` and `languageModel()` methods, also callable as a function.
+**Returns:** A provider instance.
 
 ### `githubCopilot`
 
-Pre-configured default provider instance with common GitHub Copilot headers. You'll need to provide authentication separately.
+Pre-configured default provider instance. For production use, create your own instance with proper headers:
 
-## Getting Your GitHub Copilot API Key
+```typescript
+import { githubCopilot } from '@opeoginni/github-copilot-openai-compatible';
+import { generateText } from 'ai';
 
-To use this provider, you'll need a GitHub Copilot API token. This is typically obtained through GitHub Copilot's authentication flow in VS Code or other supported editors.
+// Create your own configured instance
+const copilot = createGithubCopilotOpenAICompatible({
+  apiKey: process.env.COPILOT_TOKEN,
+  headers: {
+    "Copilot-Integration-Id": "vscode-chat",
+    "User-Agent": "GitHubCopilotChat/0.26.7",
+    "Editor-Version": "vscode/1.104.1",
+    "Editor-Plugin-Version": "copilot-chat/0.26.7"
+  },
+});
+
+const { text } = await generateText({
+  model: copilot('gpt-5.1-codex'),
+  prompt: 'Hello, world!',
+});
+```
 
 ## License
 

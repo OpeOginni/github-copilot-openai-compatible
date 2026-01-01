@@ -80,8 +80,8 @@ export function createGitHubCopilotOpenAICompatible(
     withUserAgentSuffix(headers, `opeoginni/github-copilot-openai-compatible/${VERSION}`);  
 
   const createChatModel = (modelId: GitHubCopilotModelId) => {
-    // If model is gpt-5-codex, use the responses API
-    if (modelId.includes('gpt-5-codex') || modelId.includes('gpt-5.1-codex') || modelId.includes('gpt-5.1-codex-mini')) {
+    // If model is codex, use the responses API
+    if (modelId.includes('codex')) {
       return new OpenAIResponsesLanguageModel(modelId, {
         provider: `${options.name ?? 'githubcopilot'}.responses`,
         headers: getHeaders,
