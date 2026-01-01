@@ -38,13 +38,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:example": "npm run build && npx tsx examples/test-usage.ts",
+    "generate-token": "npx tsx examples/generate-token.ts",
     "pack:test": "npm run build && npm pack"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^2.0.42",
-    "@ai-sdk/openai-compatible": "^1.0.19",
-    "@ai-sdk/provider": "^2.1.0-beta.4",
-    "@ai-sdk/provider-utils": "^3.0.10"
+    "@ai-sdk/openai-compatible": "^2.0.2",
+    "@ai-sdk/provider": "^3.0.1",
+    "@ai-sdk/provider-utils": "^4.0.2"
   },
   "devDependencies": {
     "tsup": "^7.1.0",

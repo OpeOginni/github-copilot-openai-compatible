@@ -13,3 +13,6 @@ package-lock.json
 
 # Development files
 .npmignore
+
+# Example logs (not useful for consumers)
+examples/generate-token.log

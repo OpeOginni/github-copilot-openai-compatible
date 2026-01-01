@@ -1,4 +1,4 @@
-import { LanguageModelV2 } from '@ai-sdk/provider';
+import { LanguageModelV3 } from '@ai-sdk/provider';
 import { OpenAICompatibleChatLanguageModel } from '@ai-sdk/openai-compatible';
 import {
   FetchFunction,
@@ -42,17 +42,17 @@ export interface GitHubCopilotProvider {
   /**
    * Creates a GitHub Copilot model for text generation.
    */
-  (modelId: GitHubCopilotModelId): LanguageModelV2;
+  (modelId: GitHubCopilotModelId): LanguageModelV3;
 
   /**
    * Creates a GitHub Copilot model for text generation.
    */
-  chatModel(modelId: GitHubCopilotModelId): LanguageModelV2;
+  chatModel(modelId: GitHubCopilotModelId): LanguageModelV3;
 
   /**
    * Creates a GitHub Copilot model for text generation.
    */
-  languageModel(modelId: GitHubCopilotModelId): LanguageModelV2;
+  languageModel(modelId: GitHubCopilotModelId): LanguageModelV3;
 }
 
 /**
@@ -81,7 +81,7 @@ export function createGitHubCopilotOpenAICompatible(
 
   const createChatModel = (modelId: GitHubCopilotModelId) => {
     // If model is gpt-5-codex, use the responses API
-    if (modelId.includes('gpt-5-codex') || modelId.includes('gpt-5.1-codex') || modelId.includes('gpt-5.1-codex-mini')) {
+    if (modelId.includes('codex')) {
       return new OpenAIResponsesLanguageModel(modelId, {
         provider: `${options.name ?? 'githubcopilot'}.responses`,
         headers: getHeaders,
