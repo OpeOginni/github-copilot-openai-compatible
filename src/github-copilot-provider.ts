@@ -36,6 +36,11 @@ export interface GitHubCopilotProviderSettings {
    * Custom fetch implementation.
    */
   fetch?: FetchFunction;
+
+  /**
+   * Whether chat models support structured outputs.
+   */
+  supportsStructuredOutputs?: boolean;
 }
 
 export interface GitHubCopilotProvider {
@@ -95,6 +100,7 @@ export function createGitHubCopilotOpenAICompatible(
       headers: getHeaders,
       url: ({ path }) => `${baseURL}${path}`,
       fetch: options.fetch,
+      supportsStructuredOutputs: options.supportsStructuredOutputs,
     });
   };
 

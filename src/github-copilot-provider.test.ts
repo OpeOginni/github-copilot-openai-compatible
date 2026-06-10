@@ -72,6 +72,77 @@ describe('github-copilot provider', () => {
     expect(model.provider).toBe('custom-copilot.chat');
   });
 
+  it('should forward structured output support to chat models', async () => {
+    const responseBody = {
+      id: 'test-id',
+      model: 'gpt-4o',
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: '{"ok":true}',
+          },
+          finish_reason: 'stop',
+        },
+      ],
+      usage: {
+        prompt_tokens: 10,
+        completion_tokens: 5,
+        total_tokens: 15,
+      },
+    };
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({
+        'content-type': 'application/json',
+      }),
+      text: async () => JSON.stringify(responseBody),
+      json: async () => responseBody,
+    });
+
+    const githubCopilot = createGitHubCopilotOpenAICompatible({
+      baseURL: 'https://api.githubcopilot.com',
+      supportsStructuredOutputs: true,
+      fetch: mockFetch as any,
+    });
+
+    const model = githubCopilot.chatModel('gpt-4o');
+    expect(model.supportsStructuredOutputs).toBe(true);
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: "user",
+          content: [{
+            type: "text",
+            text: "Return JSON",
+          }],
+        }
+      ],
+      responseFormat: {
+        type: 'json',
+        schema: {
+          type: 'object',
+          properties: {
+            ok: { type: 'boolean' },
+          },
+          required: ['ok'],
+          additionalProperties: false,
+        },
+      },
+    });
+
+    expect(result.warnings).not.toContainEqual(
+      expect.objectContaining({
+        type: 'unsupported',
+        feature: 'responseFormat',
+      })
+    );
+  });
+
 
   it('should support languageModel method', async () => {
     const githubCopilot = createGitHubCopilotOpenAICompatible({
